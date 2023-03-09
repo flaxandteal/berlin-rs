@@ -1,101 +1,8 @@
-# berlin-rs
+# berlin
 
-A Python/Rust microservice to identify locations and tag them with UN-LOCODEs and
+A Rust crate to identify locations and tag them with UN-LOCODEs and
 ISO-3166-2 subdivisions.
 
-
-### Getting started
-
-To test the Rust API locally:
-
-```shell
-  make run
-```
-
-This will make an API available on port 3001. It serves simple requests of the
-form:
-
-```shell
-curl 'http://localhost:3001/berlin/search?q=house+prices+in+londo&state=gb' | jq
-```
-
-replacing `localhost` with the local endpoint (`jq` used for formatting).
-
-This will return results of the form:
-
-```json
-{
-  "time": "32.46ms",
-  "query": {
-    "raw": "house prices in londo",
-    "normalized": "house prices in londo",
-    "stop_words": [
-      "in"
-    ],
-    "codes": [],
-    "exact_matches": [
-      "house"
-    ],
-    "not_exact_matches": [
-      "house prices",
-      "prices in",
-      "prices",
-      "in londo",
-      "londo"
-    ],
-    "state_filter": "gb",
-    "limit": 1,
-    "levenshtein_distance": 2
-  },
-  "results": [
-    {
-      "loc": {
-        "encoding": "UN-LOCODE",
-        "id": "gb:lon",
-        "key": "UN-LOCODE-gb:lon",
-        "names": [
-          "london"
-        ],
-        "codes": [
-          "lon"
-        ],
-        "state": [
-          "gb",
-          "united kingdom of great britain and northern ireland"
-        ],
-        "subdiv": [
-          "lnd",
-          "london, city of"
-        ]
-      },
-      "score": 1346,
-      "offset": {
-        "start": 16,
-        "end": 21
-      }
-    }
-  ]
-}
-```
-
-A Python wheel can also be built, using
-
-```shell
-  make wheels
-  pip install build/wheels/berlin-0.1.0-xyz.whl
-```
-
-where `xyz` is your architecture.
-
-Afterwards berlin should be functional inside a python shell/script. Example:
-
-```python
-import berlin
-
-db = berlin.load('../data')
-loc = db.query('manchester population', 'gb', 1)[0];
-print("location:", loc.words)
-```
 
 ### Description
 
@@ -138,14 +45,7 @@ in under 10 milliseconds if deemed desirable.
 
 ### License
 
-Prepared by Flax & Teal Limited for ONS Alpha project.
-Copyright © 2022, Office for National Statistics (https://www.ons.gov.uk)
-
-Released under MIT license, see [LICENSE](LICENSE.md) for details.
-
-### License
-
-Prepared by Flax & Teal Limited for ONS Alpha project.
-Copyright © 2022, Office for National Statistics (https://www.ons.gov.uk)
+Prepared by Flax & Teal Limited for ONS Alpha and ONS Beta projects.
+Copyright © 2022-2023, ONS Digital (https://www.ons.gov.uk)
 
 Released under MIT license, see [LICENSE](LICENSE.md) for details.
