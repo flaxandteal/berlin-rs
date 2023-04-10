@@ -11,9 +11,6 @@ variables:
 services:
   - docker:18.09.7-dind
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
-
 stages:
 - test
 - build
@@ -37,6 +34,8 @@ rust-nightly:
 build:
   stage: build
   image: docker:20.10
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
   needs:
   - rust-latest
   script:
