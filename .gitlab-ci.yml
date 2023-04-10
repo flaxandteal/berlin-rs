@@ -2,8 +2,6 @@ variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   CACHING_LAYER_TAG: $IMAGE_TAG-build_cache
   IMAGE_SHA_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-  # Tell 'docker:dind' to enable TLS (recommended)
-  # and generate certificates in the specified directory.
   DOCKER_TLS_CERTDIR: "/certs"
   DOCKER_DRIVER: overlay
   DOCKER_HOST: tcp://localhost:2375/
