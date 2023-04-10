@@ -36,6 +36,8 @@ rust-nightly:
 
 build:
   image: docker:20.10
+  depends:
+  - rust-latest
   script:
     # cache
     - rm .dockerignore
