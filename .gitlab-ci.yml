@@ -36,7 +36,7 @@ rust-nightly:
 
 build:
   image: docker:20.10
-  depends:
+  needs:
   - rust-latest
   script:
     # cache
