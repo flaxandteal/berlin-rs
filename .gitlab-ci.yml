@@ -35,6 +35,7 @@ rust-nightly:
   allow_failure: true
 
 build:
+  stage: build
   image: docker:20.10
   needs:
   - rust-latest
