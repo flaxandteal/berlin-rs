@@ -26,8 +26,8 @@ pub struct SearchTerm {
 #[derive(Debug)]
 pub struct SearchableStringSet {
     pub stop_words: Vec<Ustr>,
-    pub exact: Vec<MatchDef<Ustr>>,
-    pub not_exact: Vec<MatchDef<String>>,
+    exact: Vec<MatchDef<Ustr>>,
+    not_exact: Vec<MatchDef<String>>,
 }
 
 impl SearchTerm {
@@ -96,6 +96,13 @@ impl Ord for Score {
 }
 
 impl SearchableStringSet {
+    pub fn new(stop_words: Vec<Ustr>) -> SearchableStringSet {
+        SearchableStringSet {
+            stop_words: stop_words,
+            exact: vec![],
+            not_exact: vec![],
+        }
+    }
     pub fn match_str(&self, subject: &str) -> Option<Score> {
         let exact = self
             .exact
@@ -167,7 +174,7 @@ impl SearchableStringSet {
             None => {}
         }
     }
-    pub fn add_exact(&mut self, u: Ustr, normalized: &String) {
+    fn add_exact(&mut self, u: Ustr, normalized: &String) {
         let str = u.as_str();
         let start = normalized.find(str).unwrap();
         self.exact.push(MatchDef {
@@ -178,7 +185,7 @@ impl SearchableStringSet {
             },
         })
     }
-    pub fn add_not_exact(&mut self, ne: String, normalized: &String) {
+    fn add_not_exact(&mut self, ne: String, normalized: &String) {
         let start = normalized.find(&ne).unwrap();
         self.not_exact.push(MatchDef {
             offset: Offset {
@@ -210,11 +217,9 @@ impl SearchTerm {
             lev_dist,
             limit,
             codes: vec![],
-            matches: SearchableStringSet {
-                stop_words: stop_words.clone(),
-                exact: vec![],
-                not_exact: vec![],
-            }
+            matches: SearchableStringSet::new(
+                stop_words.clone()
+            )
         };
         // info!("Split words: {:?}", split_words);
         for (i, w) in split_words.iter().enumerate() {
