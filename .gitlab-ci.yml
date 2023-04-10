@@ -14,6 +14,26 @@ services:
 before_script:
   - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
 
+stages:
+- test
+- build
+
+# Courtesy https://doc.rust-lang.org/cargo/guide/continuous-integration.html
+rust-latest:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo build --verbose
+    - cargo test --verbose
+
+rust-nightly:
+  stage: test
+  image: rustlang/rust:nightly
+  script:
+    - cargo build --verbose
+    - cargo test --verbose
+  allow_failure: true
+
 build:
   image: docker:20.10
   script:
