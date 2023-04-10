@@ -50,3 +50,7 @@ impl ResultsGraph {
         ResultsGraph { scores: results }
     }
 }
+
+#[cfg(test)]
+mod tests {
+}
