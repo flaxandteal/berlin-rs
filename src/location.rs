@@ -303,7 +303,7 @@ pub struct Locode {
     subdivision_name: Option<Ustr>,
     pub(crate) subdivision_code: Option<Ustr>,
     pub(crate) function_code: Ustr,
-    pub(crate) coordinages: Option<Coordinates>,
+    pub(crate) coordinates: Option<Coordinates>,
 }
 
 impl Locode {
@@ -324,7 +324,7 @@ impl Locode {
                 .map(|sd| crate::normalize(sd).into()),
             subdivision_code: r.get("subdivision_code").map(|sd| normalize(sd).into()),
             function_code: normalize(extract_field(&r, "function_code")?).into(),
-            coordinages: None,
+            coordinates: None,
         })
     }
 }

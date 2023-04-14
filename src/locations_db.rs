@@ -83,32 +83,44 @@ impl LocationsDb {
             fst,
         }
     }
-    pub fn search(&self, st: &SearchTerm) -> Vec<(Ustr, Score)> {
-        let mut pre_filtered: UstrSet = UstrSet::default();
-        st.exact_matches.iter().for_each(|term| {
-            if let Some(locs) = self.by_word_map.get(&term.term) {
-                pre_filtered.extend(locs);
-            };
-        });
-        let not_exact = st.not_exact_matches.iter().map(|ne| ne.term.as_str());
-        let mut stream = not_exact
-            .fold(fst::map::OpBuilder::new(), |op, term| {
-                match term.len() > 3 {
-                    true => {
-                        let prefix_matcher = fst::automaton::Str::new(term).starts_with();
-                        let autom = fst::automaton::Levenshtein::new(term, st.lev_dist)
-                            .expect("build automaton")
-                            .union(prefix_matcher);
-                        op.add(self.fst.search(autom))
-                    }
-                    false => op,
-                }
-            })
-            .union();
+    pub fn search<'c>(&'c self, st: &'c SearchTerm) -> Vec<(Ustr, Score)> {
+        let fst = &self.fst;
+        let search_action = |op: fst::map::OpBuilder::<'c>, term: &'c str| {
+            match term.len() > 3 {
+                true => {
+                    let prefix_matcher = fst::automaton::Str::new(term).starts_with();
+                    let autom = fst::automaton::Levenshtein::new(term, st.lev_dist)
+                        .expect("build automaton")
+                        .union(prefix_matcher);
+                    op.add(fst.search(autom))
+                },
+                false => op
+            }
+        };
+
+        let grab_action = |term: &Ustr| {
+            self.by_word_map.get(term)
+        };
+
+        // Grab is for strings we believe we know, searches for those
+        // we do not. This allows fast resolution, without searching,
+        // where possible.
+        let (builder, mut pre_filtered) = st.build_search(
+            fst::map::OpBuilder::new(),
+            search_action,
+            grab_action
+        );
+
+        // Finalize and consume the search, extending the prefiltered
+        // locations that we wish to apply to.
+        let mut stream = builder.union();
         while let Some((_, v)) = stream.next() {
             let (_, locs) = self.by_word_vec.get(v[0].value as usize).unwrap();
             pre_filtered.extend(locs);
         }
+
+        // Search then properly qualifies and quantifies the preliminary
+        // matching above.
         let res = pre_filtered
             .par_iter()
             .filter_map(|key| {
@@ -121,12 +133,57 @@ impl LocationsDb {
             })
             .flatten()
             .collect::<UstrMap<_>>();
+
         let res_graph = ResultsGraph::from_results(res, &self);
         let mut res = res_graph.scores.into_iter().collect::<Vec<_>>();
         res.sort_unstable_by(|a, b| b.1.cmp(&a.1));
         res.truncate(st.limit);
         res
     }
+}
+
+pub fn parse_data_list(mut db: LocationsDb, iter: csv::DeserializeRecordsIter<File, CsvLocode>) -> LocationsDb {
+    let mut nerrs = 1;
+    for rec in iter {
+        let csv_loc = rec.expect("CSV Locode decode");
+        let key = &csv_loc.key();
+        match db.all.get_mut(key) {
+            None => {
+                debug!("#{} LOCODE not found in db: {} {:?}", nerrs, key, csv_loc);
+                nerrs += 1;
+            }
+            Some(loc) => {
+                let coord = csv_loc.parse_coordinates();
+                match loc.data {
+                    LocData::Locd(mut d) => d.coordinates = coord,
+                    _ => panic!("should not happen"),
+                }
+            }
+        }
+    }
+    db
+}
+
+pub fn parse_data_block(db: &RwLock<LocationsDb>, obj: serde_json::Map<std::string::String, serde_json::Value>) -> &RwLock<LocationsDb> {
+    let iter = obj.into_iter().par_bridge();
+    iter
+        .filter_map(|(id, val)| {
+            let raw_any = serde_json::from_value::<AnyLocation>(val)
+                .expect("Cannot decode location code");
+            let loc = Location::from_raw(raw_any);
+            match loc {
+                Ok(loc) => Some(loc),
+                Err(err) => {
+                    error!("Error for: {id} {:?}", err);
+                    None
+                }
+            }
+        })
+        .for_each(|l| {
+            let mut db = db.write().expect("cannot aquire lock");
+            db.insert(l);
+        });
+    db
 }
 
 pub fn parse_data_files(data_dir: PathBuf) -> LocationsDb {
@@ -149,53 +206,18 @@ pub fn parse_data_files(data_dir: PathBuf) -> LocationsDb {
         info!("Decode json file {file}: {:.2?}", start.elapsed());
         match json {
             Value::Object(obj) => {
-                let iter = obj.into_iter().par_bridge();
-                let codes = iter
-                    .filter_map(|(id, val)| {
-                        let raw_any = serde_json::from_value::<AnyLocation>(val)
-                            .expect("Cannot decode location code");
-                        let loc = Location::from_raw(raw_any);
-                        match loc {
-                            Ok(loc) => Some(loc),
-                            Err(err) => {
-                                error!("Error for: {id} {:?}", err);
-                                None
-                            }
-                        }
-                    })
-                    .for_each(|l| {
-                        let mut db = db.write().expect("cannot aquire lock");
-                        db.insert(l);
-                    });
+                parse_data_block(&db, obj);
                 info!("{file} decoded to native structs: {:.2?}", start.elapsed());
-                codes
-            }
+            },
             other => panic!("Expected a JSON object: {:?}", other),
-        }
+        };
     });
     let mut db = db.into_inner().expect("rw lock extract");
     let csv_file = data_dir.join("code-list_csv.csv");
     let csv_file_open = File::open(csv_file).expect("Read CSV File");
     let mut csv_reader = ReaderBuilder::new().from_reader(csv_file_open);
     let iter = csv_reader.deserialize::<CsvLocode>();
-    let mut nerrs = 1;
-    for rec in iter {
-        let csv_loc = rec.expect("CSV Locode decode");
-        let key = &csv_loc.key();
-        match db.all.get_mut(key) {
-            None => {
-                debug!("#{} LOCODE not found in db: {} {:?}", nerrs, key, csv_loc);
-                nerrs += 1;
-            }
-            Some(loc) => {
-                let coord = csv_loc.parse_coordinates();
-                match loc.data {
-                    LocData::Locd(mut d) => d.coordinages = coord,
-                    _ => panic!("should not happen"),
-                }
-            }
-        }
-    }
+    db = parse_data_list(db, iter);
     let count = db.all.len();
     info!("parsed {} locations in: {:.2?}", count, start.elapsed());
     db.mk_fst()

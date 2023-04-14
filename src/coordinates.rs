@@ -44,3 +44,17 @@ pub fn coordinate_parser(i: &str) -> IResult<&str, Coordinates> {
 fn float_from_deg_min(deg: &str, min: &str) -> f64 {
     f64::from_str(deg).unwrap() + f64::from_str(min).unwrap() / 60.0_f64
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::coordinates::coordinate_parser;
+
+    #[test]
+    fn can_parse_coordinates() {
+        let res = coordinate_parser("600N 01212E").unwrap();
+        assert!(res.0 == "");
+        let coordinates = res.1;
+        assert!((coordinates.lat - 60.0).abs() < 1e-3);
+        assert!((coordinates.lon - 12.2).abs() < 1e-3);
+    }
+}

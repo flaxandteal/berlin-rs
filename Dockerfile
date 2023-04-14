@@ -1,4 +1,4 @@
-FROM rust:1.58 as chef
+FROM rust:1.68 as chef
 WORKDIR /app
 RUN cargo install cargo-chef --locked
 

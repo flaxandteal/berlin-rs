@@ -2,8 +2,6 @@ variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   CACHING_LAYER_TAG: $IMAGE_TAG-build_cache
   IMAGE_SHA_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-  # Tell 'docker:dind' to enable TLS (recommended)
-  # and generate certificates in the specified directory.
   DOCKER_TLS_CERTDIR: "/certs"
   DOCKER_DRIVER: overlay
   DOCKER_HOST: tcp://localhost:2375/
@@ -11,11 +9,33 @@ variables:
 services:
   - docker:18.09.7-dind
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+stages:
+- test
+- build
+
+# Courtesy https://doc.rust-lang.org/cargo/guide/continuous-integration.html
+rust-latest:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo build --verbose
+    - cargo test --verbose
+
+rust-nightly:
+  stage: test
+  image: rustlang/rust:nightly
+  script:
+    - cargo build --verbose
+    - cargo test --verbose
+  allow_failure: true
 
 build:
+  stage: build
   image: docker:20.10
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+  needs:
+  - rust-latest
   script:
     # cache
     - rm .dockerignore
