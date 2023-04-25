@@ -13,7 +13,7 @@ use rayon::iter::{
     ParallelIterator,
 };
 use serde_json::Value;
-use tracing::{debug, error, info};
+use tracing::{debug, info};
 use ustr::{Ustr, UstrMap, UstrSet};
 
 use crate::graph::ResultsGraph;
