@@ -34,7 +34,7 @@ pub fn fake_data() -> LocationsDb {
     info!("Decode json file {path_str}: {:.2?}", start.elapsed());
     match json {
         Value::Object(obj) => {
-            parse_data_block(&db, obj);
+            parse_data_block(&db, obj).expect("cannot parse json");
         }
         other => panic!("Expected a JSON object: {:?}", other),
     }
@@ -43,8 +43,10 @@ pub fn fake_data() -> LocationsDb {
     let csv_file = data_dir.join("test-code-list.csv");
     let csv_file_open = File::open(csv_file).expect("Read CSV File");
     let mut csv_reader = ReaderBuilder::new().from_reader(csv_file_open);
-    let iter = csv_reader.deserialize::<CsvLocode>();
-    db = parse_data_list(db, iter);
+    let iter = csv_reader.deserialize::<CsvLocode>().enumerate().map(|(n, result)|
+        result.expect(format!("could not parse CSV line {}", n + 1).as_str())
+    );
+    db = parse_data_list(db, iter).expect("could not parse csv file");
     let count = db.all.len();
     info!("parsed {} locations in: {:.2?}", count, start.elapsed());
     db.mk_fst()
