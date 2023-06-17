@@ -34,6 +34,15 @@ pub struct LocationsDb {
 }
 
 impl LocationsDb {
+    pub fn retrieve(&self, matchable: &str) -> Option<Location> {
+        match Ustr::from_existing(matchable) {
+            Some(u) => match matchable.len() {
+                0 | 1 => None,
+                _ => self.all.get(&u).cloned()
+            },
+            None => None
+        }
+    }
     pub fn insert(&mut self, l: Location) {
         match &l.data {
             LocData::St(s) => {
