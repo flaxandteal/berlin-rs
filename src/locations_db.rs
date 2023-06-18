@@ -38,9 +38,9 @@ impl LocationsDb {
         match Ustr::from_existing(matchable) {
             Some(u) => match matchable.len() {
                 0 | 1 => None,
-                _ => self.all.get(&u).cloned()
+                _ => self.all.get(&u).cloned(),
             },
-            None => None
+            None => None,
         }
     }
     pub fn insert(&mut self, l: Location) {

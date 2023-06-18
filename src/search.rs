@@ -141,20 +141,24 @@ impl SearchableStringSet {
     }
     pub fn build_search<'c>(
         &'c self,
-        mut op: fst::map::OpBuilder::<'c>,
-        mut search_action: impl FnMut(fst::map::OpBuilder::<'c>, &'c str) -> fst::map::OpBuilder::<'c>,
-        mut grab_action: impl FnMut(&'c Ustr,) -> Option<&UstrSet>
+        mut op: fst::map::OpBuilder<'c>,
+        mut search_action: impl FnMut(fst::map::OpBuilder<'c>, &'c str) -> fst::map::OpBuilder<'c>,
+        mut grab_action: impl FnMut(&'c Ustr) -> Option<&UstrSet>,
     ) -> (fst::map::OpBuilder, UstrSet) {
         let mut pre_filtered: UstrSet = UstrSet::default();
         let ungrabbed = {
             self.exact
                 .iter()
                 .filter_map(|t| match grab_action(&t.term) {
-                    Some(locs) => { pre_filtered.extend(locs); None }
-                    _ => Some(t.term.as_str())
+                    Some(locs) => {
+                        pre_filtered.extend(locs);
+                        None
+                    }
+                    _ => Some(t.term.as_str()),
                 })
         };
-        op = self.not_exact
+        op = self
+            .not_exact
             .iter()
             .map(|ne| ne.term.as_str())
             .chain(ungrabbed)
@@ -166,7 +170,7 @@ impl SearchableStringSet {
         // TODO: do we really want to add inexact matches of <2 chars?
         match Ustr::from_existing(matchable) {
             Some(u) => match matchable.len() {
-                0 | 1 => {}                                 // ignore
+                0 | 1 => {}                             // ignore
                 _ if self.stop_words.contains(&u) => {} // ignore stop words
                 _ => self.add_exact(u, normalized),
             },
@@ -217,9 +221,7 @@ impl SearchTerm {
             lev_dist,
             limit,
             codes: vec![],
-            matches: SearchableStringSet::new(
-                stop_words.clone()
-            )
+            matches: SearchableStringSet::new(stop_words.clone()),
         };
         // info!("Split words: {:?}", split_words);
         for (i, w) in split_words.iter().enumerate() {
@@ -255,9 +257,9 @@ impl SearchTerm {
     }
     pub fn build_search<'c>(
         &'c self,
-        op: fst::map::OpBuilder::<'c>,
-        search_action: impl FnMut(fst::map::OpBuilder::<'c>, &'c str) -> fst::map::OpBuilder::<'c>,
-        grab_action: impl FnMut(&'c Ustr,) -> Option<&UstrSet>
+        op: fst::map::OpBuilder<'c>,
+        search_action: impl FnMut(fst::map::OpBuilder<'c>, &'c str) -> fst::map::OpBuilder<'c>,
+        grab_action: impl FnMut(&'c Ustr) -> Option<&UstrSet>,
     ) -> (fst::map::OpBuilder, UstrSet) {
         self.matches.build_search(op, search_action, grab_action)
     }

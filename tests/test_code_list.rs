@@ -1,17 +1,17 @@
 use rstest::*;
 
-use std::time::Instant;
-use std::path::PathBuf;
-use std::fs::File;
-use std::sync::RwLock;
-use std::io::BufReader;
 use csv::ReaderBuilder;
+use std::fs::File;
+use std::io::BufReader;
+use std::path::PathBuf;
+use std::sync::RwLock;
+use std::time::Instant;
 use tracing::info;
 
 use serde_json::Value;
 
 use berlin_core::location::CsvLocode;
-use berlin_core::locations_db::{LocationsDb, parse_data_list, parse_data_block};
+use berlin_core::locations_db::{parse_data_block, parse_data_list, LocationsDb};
 use berlin_core::search::SearchTerm;
 
 #[fixture]
@@ -43,9 +43,10 @@ pub fn fake_data() -> LocationsDb {
     let csv_file = data_dir.join("test-code-list.csv");
     let csv_file_open = File::open(csv_file).expect("Read CSV File");
     let mut csv_reader = ReaderBuilder::new().from_reader(csv_file_open);
-    let iter = csv_reader.deserialize::<CsvLocode>().enumerate().map(|(n, result)|
-        result.expect(format!("could not parse CSV line {}", n + 1).as_str())
-    );
+    let iter = csv_reader
+        .deserialize::<CsvLocode>()
+        .enumerate()
+        .map(|(n, result)| result.expect(format!("could not parse CSV line {}", n + 1).as_str()));
     db = parse_data_list(db, iter).expect("could not parse csv file");
     let count = db.all.len();
     info!("parsed {} locations in: {:.2?}", count, start.elapsed());
@@ -54,22 +55,12 @@ pub fn fake_data() -> LocationsDb {
 
 #[fixture]
 pub fn search_lyuliakovo() -> SearchTerm {
-    SearchTerm::from_raw_query(
-        "Lyuliakovo".to_string(),
-        None,
-        5,
-        3
-    )
+    SearchTerm::from_raw_query("Lyuliakovo".to_string(), None, 5, 3)
 }
 
 #[fixture]
 pub fn search_abercorn() -> SearchTerm {
-    SearchTerm::from_raw_query(
-        "abercorn".to_string(),
-        None,
-        5,
-        3
-    )
+    SearchTerm::from_raw_query("abercorn".to_string(), None, 5, 3)
 }
 
 #[rstest]

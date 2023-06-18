@@ -52,5 +52,4 @@ impl ResultsGraph {
 }
 
 #[cfg(test)]
-mod tests {
-}
+mod tests {}
