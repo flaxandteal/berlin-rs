@@ -8,6 +8,7 @@ use std::time::Instant;
 
 use csv::ReaderBuilder;
 use fst::{Automaton, Streamer};
+use indextree::{Arena, NodeId};
 use rayon::iter::{
     IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelBridge,
     ParallelIterator,
@@ -15,7 +16,6 @@ use rayon::iter::{
 use serde_json::Value;
 use tracing::{debug, info};
 use ustr::{Ustr, UstrMap, UstrSet};
-use indextree::{Arena, NodeId};
 
 use crate::graph::ResultsGraph;
 use crate::location::{AnyLocation, CsvLocode, LocData, Location};
