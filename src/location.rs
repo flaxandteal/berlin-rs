@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use smallvec::{smallvec, SmallVec};
 use tracing::error;
 use ustr::{Ustr, UstrSet};
+use indextree::NodeId;
 
 use crate::coordinates::Coordinates;
 use crate::search::{Score, SearchTerm};
