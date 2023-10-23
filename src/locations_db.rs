@@ -69,7 +69,7 @@ impl LocationsDb {
             match loc.get_parents() {
                 (_, Some(subdiv)) => self.indices.get(&subdiv).unwrap().append(*node_id, arena),
                 (Some(st), None) => self.indices.get(&st).unwrap().append(*node_id, arena),
-                (None, None) => ()
+                (None, None) => (),
             };
 
             let codes = loc.get_codes();
