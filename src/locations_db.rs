@@ -8,6 +8,7 @@ use std::time::Instant;
 
 use csv::ReaderBuilder;
 use fst::{Automaton, Streamer};
+use indextree::{Arena, NodeId};
 use rayon::iter::{
     IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelBridge,
     ParallelIterator,
@@ -24,6 +25,7 @@ use crate::SEARCH_INCLUSION_THRESHOLD;
 #[derive(Default)]
 pub struct LocationsDb {
     pub all: UstrMap<Location>,
+    pub indices: UstrMap<NodeId>,
     // state names by code
     pub state_by_code: UstrMap<Ustr>,
     // key is in format "gb:lon", value is name
@@ -31,6 +33,7 @@ pub struct LocationsDb {
     pub by_word_map: UstrMap<UstrSet>,
     pub by_word_vec: Vec<(Ustr, UstrSet)>,
     pub fst: fst::Map<Vec<u8>>,
+    pub arena: Arena<Ustr>,
 }
 
 impl LocationsDb {
@@ -46,19 +49,29 @@ impl LocationsDb {
     pub fn insert(&mut self, l: Location) {
         match &l.data {
             LocData::St(s) => {
-                self.state_by_code.insert(s.alpha2, s.name);
+                self.state_by_code.insert(s.alpha2, l.key);
             }
-            LocData::Subdv(sd) => {
-                self.subdiv_by_code.insert(l.id, sd.name);
+            LocData::Subdv(_sd) => {
+                self.subdiv_by_code.insert(l.id, l.key);
             }
             LocData::Locd(_) => {}
             LocData::Airp(_) => {}
         }
+        let node_id = self.arena.new_node(l.key);
+        self.indices.insert(l.key, node_id);
         self.all.insert(l.key, l);
     }
-    pub fn mk_fst(self) -> Self {
+    pub fn mk_fst(mut self) -> Self {
         let mut words_map: UstrMap<UstrSet> = UstrMap::default();
+        let arena = &mut self.arena;
         self.all.iter().for_each(|(key, loc)| {
+            let node_id: &NodeId = self.indices.get(key).unwrap();
+            match loc.get_parents() {
+                (_, Some(subdiv)) => self.indices.get(&subdiv).unwrap().append(*node_id, arena),
+                (Some(st), None) => self.indices.get(&st).unwrap().append(*node_id, arena),
+                (None, None) => (),
+            };
+
             let codes = loc.get_codes();
             let names = loc.get_names();
             let words_iter = loc.words.iter().chain(codes.iter()).chain(names.iter());
@@ -88,6 +101,8 @@ impl LocationsDb {
         .expect("Build FST");
         LocationsDb {
             all: self.all,
+            arena: self.arena,
+            indices: self.indices,
             state_by_code: self.state_by_code,
             subdiv_by_code: self.subdiv_by_code,
             by_word_map: words_map,
