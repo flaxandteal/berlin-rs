@@ -167,6 +167,7 @@ impl SearchableStringSet {
     }
 
     pub fn add(&mut self, matchable: &str, normalized: &String, allow_inexact: bool) {
+        panic!["Match {}", matchable];
         // TODO: do we really want to add inexact matches of <2 chars?
         match Ustr::from_existing(matchable) {
             Some(u) => match matchable.len() {
@@ -181,6 +182,7 @@ impl SearchableStringSet {
     fn add_exact(&mut self, u: Ustr, normalized: &String) {
         let str = u.as_str();
         let start = normalized.find(str).unwrap();
+        print!["{} {}", str, start];
         self.exact.push(MatchDef {
             term: u,
             offset: Offset {
@@ -191,6 +193,7 @@ impl SearchableStringSet {
     }
     fn add_not_exact(&mut self, ne: String, normalized: &String) {
         let start = normalized.find(&ne).unwrap();
+        print!["NE {} {}", ne, start];
         self.not_exact.push(MatchDef {
             offset: Offset {
                 start,
