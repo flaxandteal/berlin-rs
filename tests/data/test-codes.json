@@ -160,6 +160,17 @@
       "function_code": "-23-----"
     }
   },
+  "GB:CAY": {
+    "<c>": "ISO-3166-2",
+    "s": "<bln|ISO-3166-2#GB:CAY|\"Caerphilly [Caerffili GB-CAF]\">",
+    "i": "GB:CAY",
+    "d": {
+      "name": "Caerphilly [Caerffili GB-CAF]",
+      "supercode": "GB",
+      "subcode": "CAY",
+      "level": "unitary authority (wales)"
+    }
+  },
   "GB:SVN": {
     "<c>": "UN-LOCODE",
     "s": "<bln|UN-LOCODE#GB:SVN|\"Stonehaven\">",
@@ -171,6 +182,17 @@
       "subdivision_name": "Aberdeenshire",
       "subdivision_code": "ABD",
       "function_code": "123-----"
+    }
+  },
+  "BG:02": {
+    "<c>": "ISO-3166-2",
+    "s": "<bln|ISO-3166-2#BG:02|\"Burgas\">",
+    "i": "BG:02",
+    "d": {
+      "name": "Burgas",
+      "supercode": "BG",
+      "subcode": "02",
+      "level": "region"
     }
   }
 }
