@@ -1,7 +1,6 @@
 use std::cmp::max;
 use std::collections::HashMap;
 
-use indextree::NodeId;
 use serde::de::Error;
 use serde::{Deserialize, Serialize};
 use smallvec::{smallvec, SmallVec};
