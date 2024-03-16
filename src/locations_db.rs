@@ -1,11 +1,11 @@
 use std::boxed::Box;
+use std::cmp::min;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::sync::RwLock;
 use std::time::Instant;
-use std::cmp::min;
 
 use csv::ReaderBuilder;
 use fst::{Automaton, Streamer};
@@ -21,9 +21,9 @@ use ustr::{Ustr, UstrMap, UstrSet};
 use crate::graph::ResultsGraph;
 use crate::location::{AnyLocation, CsvLocode, LocData, Location};
 use crate::search::{Score, SearchTerm};
-use crate::SEARCH_INCLUSION_THRESHOLD;
-use crate::LEV_3_LENGTH_MAX;
 use crate::LEV_2_LENGTH_MAX;
+use crate::LEV_3_LENGTH_MAX;
+use crate::SEARCH_INCLUSION_THRESHOLD;
 
 #[derive(Default)]
 pub struct LocationsDb {
@@ -121,7 +121,7 @@ impl LocationsDb {
                 let lev_dist = match term.chars().count() {
                     count if count < LEV_3_LENGTH_MAX => st.lev_dist,
                     count if count < LEV_2_LENGTH_MAX => min(st.lev_dist, 2),
-                    _ => min(st.lev_dist, 1)
+                    _ => min(st.lev_dist, 1),
                 };
                 let autom = fst::automaton::Levenshtein::new(term, lev_dist)
                     .expect("build automaton")

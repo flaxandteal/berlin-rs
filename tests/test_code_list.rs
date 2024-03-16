@@ -103,20 +103,53 @@ fn should_search_long_sentence(fake_data: &LocationsDb) {
         pub r: usize,
     }
     [
-        LongSearch {q: "WhereareallthedentistsinAbercornIwouldlisomesomewhere", r: 0},
-        LongSearch {q: "Where are all the dentists in Abercorn I would like to find some somewhere", r: 1},
-        LongSearch {q: "Whereareallthedentists inAbercornIwouldliketofind some somewhere", r: 0},
-        LongSearch {q: "Whereareallthedentists in Bognor Regis Iwouldlike some somewhere", r: 1},
-        LongSearch {q: "Whereareallthedentists in Bognore Regis Iwouldlike some somewhere", r: 1},
-        LongSearch {q: "Whereareallthedentists in Bognoreregis Iwouldlike some somewhere", r: 1},
-        LongSearch {q: "Whereareallthedentists in BognoreRegistrar Iwouldlike some somewhere", r: 0},
-        LongSearch {q: "Whereareallthedentists some somewhere", r: 0},
-        LongSearch {q: "WhereareallthedentistsinAbercornIwouldlisomesomewhere", r: 0},
-    ].iter().for_each(|search| {
-        let long_sentence = SearchTerm::from_raw_query(
-            search.q.to_string(), None, 5, 3
-        );
+        LongSearch {
+            q: "WhereareallthedentistsinAbercornIwouldlisomesomewhere",
+            r: 0,
+        },
+        LongSearch {
+            q: "Where are all the dentists in Abercorn I would like to find some somewhere",
+            r: 1,
+        },
+        LongSearch {
+            q: "Whereareallthedentists inAbercornIwouldliketofind some somewhere",
+            r: 0,
+        },
+        LongSearch {
+            q: "Whereareallthedentists in Bognor Regis Iwouldlike some somewhere",
+            r: 1,
+        },
+        LongSearch {
+            q: "Whereareallthedentists in Bognore Regis Iwouldlike some somewhere",
+            r: 1,
+        },
+        LongSearch {
+            q: "Whereareallthedentists in Bognoreregis Iwouldlike some somewhere",
+            r: 1,
+        },
+        LongSearch {
+            q: "Whereareallthedentists in BognoreRegistrar Iwouldlike some somewhere",
+            r: 0,
+        },
+        LongSearch {
+            q: "Whereareallthedentists some somewhere",
+            r: 0,
+        },
+        LongSearch {
+            q: "WhereareallthedentistsinAbercornIwouldlisomesomewhere",
+            r: 0,
+        },
+    ]
+    .iter()
+    .for_each(|search| {
+        let long_sentence = SearchTerm::from_raw_query(search.q.to_string(), None, 5, 3);
         let results = fake_data.search(&long_sentence);
-        assert![results.len() == search.r, "Query: {}, results: {}, expected: {}", search.q, results.len(), search.r];
+        assert![
+            results.len() == search.r,
+            "Query: {}, results: {}, expected: {}",
+            search.q,
+            results.len(),
+            search.r
+        ];
     });
 }
