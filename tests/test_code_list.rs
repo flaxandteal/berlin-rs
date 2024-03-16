@@ -65,7 +65,7 @@ pub fn search_abercorn() -> SearchTerm {
 
 #[rstest]
 fn should_load_codes(fake_data: &LocationsDb) {
-    assert!(fake_data.all.len() == 13)
+    assert!(fake_data.all.len() == 14, "Got {} codes", fake_data.all.len())
 }
 
 #[rstest]
