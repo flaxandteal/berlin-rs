@@ -184,24 +184,30 @@ impl SearchableStringSet {
     }
     fn add_exact(&mut self, u: Ustr, normalized: &String) {
         let str = u.as_str();
-        let start = normalized.find(str).unwrap();
-        self.exact.push(MatchDef {
-            term: u,
-            offset: Offset {
-                start,
-                end: start + str.len(),
-            },
-        })
+        let loc = normalized.find(str);
+        match loc {
+            Some(start) => self.exact.push(MatchDef {
+                term: u,
+                offset: Offset {
+                    start,
+                    end: start + str.len(),
+                },
+            }),
+            None => ()
+        }
     }
     fn add_not_exact(&mut self, ne: String, normalized: &String) {
-        let start = normalized.find(&ne).unwrap();
-        self.not_exact.push(MatchDef {
-            offset: Offset {
-                start,
-                end: start + ne.len(),
-            },
-            term: ne,
-        })
+        let loc = normalized.find(&ne);
+        match loc {
+            Some(start) => self.not_exact.push(MatchDef {
+                offset: Offset {
+                    start,
+                    end: start + ne.len(),
+                },
+                term: ne,
+            }),
+            None => ()
+        }
     }
 }
 
@@ -212,8 +218,9 @@ impl SearchTerm {
         limit: usize,
         lev_dist: u32,
     ) -> Self {
-        let normalized = crate::normalize(&raw);
-        let split_words: Vec<&str> = normalized.unicode_words().collect();
+        let to_split = crate::normalize(&raw);
+        let split_words: Vec<&str> = to_split.unicode_words().collect();
+        let normalized = split_words.join(" ");
         let stop_words: Vec<Ustr> = split_words
             .iter()
             .filter_map(|w| Ustr::from_existing(w).filter(|w| STOP_WORDS.contains(&w.as_str())))
