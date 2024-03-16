@@ -17,6 +17,9 @@ pub mod search;
 const SCORE_SOFT_MAX: i64 = 1000;
 const STATE_CODE_BOOST: i64 = 32;
 const SUBDIV_CODE_BOOST: i64 = 16;
+const LEV_3_LENGTH_MAX: usize = 10;
+const LEV_2_LENGTH_MAX: usize = 20;
+const LEV_LENGTH_MAX: usize = 30;
 
 const SINGLE_WORD_MATCH_PENALTY: i64 = 100;
 

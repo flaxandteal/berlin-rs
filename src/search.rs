@@ -6,10 +6,12 @@ use strsim::normalized_levenshtein as similarity_algo;
 use unicode_segmentation::UnicodeSegmentation;
 use ustr::{Ustr, UstrSet};
 
+use crate::LEV_LENGTH_MAX;
 use crate::SCORE_SOFT_MAX;
 
-const STOP_WORDS: [&str; 11] = [
-    "at", "to", "in", "on", "of", "for", "by", "and", "was", "did", "the",
+const STOP_WORDS: [&str; 15] = [
+    "any", "all", "are", "is", "at", "to", "in", "on", "of", "for", "by", "and", "was", "did",
+    "the",
 ];
 
 #[derive(Debug)]
@@ -174,7 +176,9 @@ impl SearchableStringSet {
                 _ if self.stop_words.contains(&u) => {} // ignore stop words
                 _ => self.add_exact(u, normalized),
             },
-            None if allow_inexact => self.add_not_exact(normalized.clone(), normalized),
+            None if allow_inexact && matchable.chars().count() < LEV_LENGTH_MAX => {
+                self.add_not_exact(matchable.to_string(), normalized)
+            }
             None => {}
         }
     }

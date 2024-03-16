@@ -49,6 +49,17 @@
       "level": "council area"
     }
   },
+  "GB:WSX": {
+    "<c>": "ISO-3166-2",
+    "s": "<bln|ISO-3166-2#GB:WSX|\"West Sussex\">",
+    "i": "GB:WSX",
+    "d": {
+      "name": "West Sussex",
+      "supercode": "GB",
+      "subcode": "WSX",
+      "level": "ceremonial county"
+    }
+  },
   "BG:01": {
     "<c>": "ISO-3166-2",
     "s": "<bln|ISO-3166-2#BG:01|\"Blagoevgrad\">",
@@ -121,6 +132,19 @@
       "subdivision_name": "Blagoevgrad",
       "subdivision_code": "01",
       "function_code": "--3-----"
+    }
+  },
+  "GB:BSI": {
+    "<c>": "UN-LOCODE",
+    "s": "<bln|UN-LOCODE#GB:BSI|\"Bognor Regis\">",
+    "i": "GB:BSI",
+    "d": {
+      "name": "Bognor Regis",
+      "supercode": "GB",
+      "subcode": "BSI",
+      "subdivision_name": "West Sussex",
+      "subdivision_code": "WSX",
+      "function_code": "123-----"
     }
   },
   "GB:ABC": {
