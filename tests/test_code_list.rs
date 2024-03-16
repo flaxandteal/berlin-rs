@@ -65,7 +65,7 @@ pub fn search_abercorn() -> SearchTerm {
 
 #[rstest]
 fn should_load_codes(fake_data: &LocationsDb) {
-    assert!(fake_data.all.len() == 11)
+    assert!(fake_data.all.len() == 13)
 }
 
 #[rstest]
@@ -94,4 +94,29 @@ fn should_search_abercorn(fake_data: &LocationsDb, search_abercorn: SearchTerm) 
 
     assert![abercarn_loc.get_state() == "gb"];
     assert![abercarn_loc.get_subdiv().unwrap() == "cay"];
+}
+
+#[rstest]
+fn should_search_long_sentence(fake_data: &LocationsDb) {
+    pub struct LongSearch {
+        pub q: &'static str,
+        pub r: usize,
+    }
+    [
+        LongSearch {q: "WhereareallthedentistsinAbercornIwouldlisomesomewhere", r: 0},
+        LongSearch {q: "Where are all the dentists in Abercorn I would like to find some somewhere", r: 1},
+        LongSearch {q: "Whereareallthedentists inAbercornIwouldliketofind some somewhere", r: 0},
+        LongSearch {q: "Whereareallthedentists in Bognor Regis Iwouldlike some somewhere", r: 1},
+        LongSearch {q: "Whereareallthedentists in Bognore Regis Iwouldlike some somewhere", r: 1},
+        LongSearch {q: "Whereareallthedentists in Bognoreregis Iwouldlike some somewhere", r: 1},
+        LongSearch {q: "Whereareallthedentists in BognoreRegistrar Iwouldlike some somewhere", r: 0},
+        LongSearch {q: "Whereareallthedentists some somewhere", r: 0},
+        LongSearch {q: "WhereareallthedentistsinAbercornIwouldlisomesomewhere", r: 0},
+    ].iter().for_each(|search| {
+        let long_sentence = SearchTerm::from_raw_query(
+            search.q.to_string(), None, 5, 3
+        );
+        let results = fake_data.search(&long_sentence);
+        assert![results.len() == search.r, "Query: {}, results: {}, expected: {}", search.q, results.len(), search.r];
+    });
 }
