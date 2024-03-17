@@ -11,7 +11,7 @@ use crate::SCORE_SOFT_MAX;
 
 const STOP_WORDS: [&str; 18] = [
     "any", "all", "are", "is", "at", "to", "in", "on", "of", "for", "by", "and", "was", "did",
-    "the", "city", "that", "with"
+    "the", "city", "that", "with",
 ];
 
 #[derive(Debug)]
@@ -193,7 +193,7 @@ impl SearchableStringSet {
                     end: start + str.len(),
                 },
             }),
-            None => ()
+            None => (),
         }
     }
     fn add_not_exact(&mut self, ne: String, normalized: &String) {
@@ -206,7 +206,7 @@ impl SearchableStringSet {
                 },
                 term: ne,
             }),
-            None => ()
+            None => (),
         }
     }
 }
@@ -220,10 +220,11 @@ impl SearchTerm {
     ) -> Self {
         let normalized = crate::normalize(&raw);
         let split_words: Vec<&str> = normalized.unicode_words().collect();
-        let split_indices: Vec<(usize, usize, &str)> = normalized.unicode_word_indices().collect::<Vec<(usize, &str)>>().iter()
-            .map(|(n, w)| {
-                (*n, n + w.graphemes(true).count(), *w)
-            })
+        let split_indices: Vec<(usize, usize, &str)> = normalized
+            .unicode_word_indices()
+            .collect::<Vec<(usize, &str)>>()
+            .iter()
+            .map(|(n, w)| (*n, n + w.graphemes(true).count(), *w))
             .filter(|(_, _, w)| !STOP_WORDS.contains(w))
             .collect();
         let stop_words: Vec<Ustr> = split_words
