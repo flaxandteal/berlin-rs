@@ -27,17 +27,6 @@
       "continent": "EU"
     }
   },
-  "GB:ABC": {
-    "<c>": "ISO-3166-2",
-    "s": "<bln|ISO-3166-2#GB:ABC|\"Armagh, Banbridge and Craigavon\">",
-    "i": "GB:ABC",
-    "d": {
-      "name": "Armagh, Banbridge and Craigavon",
-      "supercode": "GB",
-      "subcode": "ABC",
-      "level": "[UNKNOWN]"
-    }
-  },
   "GB:ABD": {
     "<c>": "ISO-3166-2",
     "s": "<bln|ISO-3166-2#GB:ABD|\"Aberdeenshire\">",
@@ -46,6 +35,17 @@
       "name": "Aberdeenshire",
       "supercode": "GB",
       "subcode": "ABD",
+      "level": "council area"
+    }
+  },
+  "GB:ABC": {
+    "<c>": "ISO-3166-2",
+    "s": "<bln|ISO-3166-2#GB:ABC|\"Armagh City, Banbridge and Craigavon\">",
+    "i": "GB:ABC",
+    "d": {
+      "name": "Armagh City, Banbridge and Craigavon",
+      "supercode": "GB",
+      "subcode": "ABC",
       "level": "council area"
     }
   },
