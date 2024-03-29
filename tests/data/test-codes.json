@@ -194,5 +194,28 @@
       "subcode": "02",
       "level": "region"
     }
+  },
+  "my:1": {
+    "<c>": "MY-STANDARD",
+    "s": "<bln|MY-STANDARD#MY:1|\"My One\">",
+    "i": "my:1",
+    "d": {
+      "name": "My One1",
+      "supercode": "BG",
+      "subcode": "my-1",
+      "subdivision_code": "02",
+      "c": "54N 6W"
+    }
+  },
+  "my:2": {
+    "<c>": "MY-STANDARD",
+    "s": "<bln|MY-STANDARD#MY:2|\"My Two\">",
+    "i": "my:2",
+    "d": {
+      "name": "My Two2",
+      "supercode": "BG",
+      "subcode": "my-2",
+      "subdivision_code": "02"
+    }
   }
 }
