@@ -182,12 +182,7 @@ fn should_search_punctuation(fake_data: &LocationsDb) {
 
 #[rstest]
 fn should_search_generic(fake_data: &LocationsDb) {
-    let search_term = SearchTerm::from_raw_query(
-        "One1".to_string(),
-        None,
-        5,
-        3,
-    );
+    let search_term = SearchTerm::from_raw_query("One1".to_string(), None, 5, 3);
     let results = fake_data.search(&search_term);
     assert![results.len() == 1, "Found {}", results.len()];
 

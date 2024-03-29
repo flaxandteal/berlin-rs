@@ -347,10 +347,10 @@ impl Generic {
             coordinates: match r.get("c") {
                 Some(coords) => match coordinates::coordinate_parser(coords) {
                     Ok(coords) => Some(coords.1),
-                    _ => None
+                    _ => None,
                 },
-                None => None
-            }
+                None => None,
+            },
         })
     }
 }
