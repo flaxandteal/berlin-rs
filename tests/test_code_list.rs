@@ -66,7 +66,7 @@ pub fn search_abercorn() -> SearchTerm {
 #[rstest]
 fn should_load_codes(fake_data: &LocationsDb) {
     assert!(
-        fake_data.all.len() == 14,
+        fake_data.all.len() == 15,
         "Got {} codes",
         fake_data.all.len()
     )
@@ -161,11 +161,18 @@ fn should_search_long_sentence(fake_data: &LocationsDb) {
 #[rstest]
 fn should_search_punctuation(fake_data: &LocationsDb) {
     let search_term = SearchTerm::from_raw_query(
-        "Armagh City, Banbridge and Craigavon".to_string(),
+        "Armagh City".to_string(),
         None,
         5,
         3,
     );
     let results = fake_data.search(&search_term);
-    assert![results.len() == 0, "Found {}", results.len()];
+    assert![results.len() == 1, "Found {}", results.len()];
+    let armagh = results[0].0;
+    assert![armagh == "ISO-3166-2-gb:abc"];
+
+    let armagh_loc = &fake_data.all[&armagh];
+
+    assert![armagh_loc.get_state() == "gb"];
+    assert![armagh_loc.get_subdiv().unwrap() == "abc"];
 }
