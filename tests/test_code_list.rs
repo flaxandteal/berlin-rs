@@ -160,12 +160,7 @@ fn should_search_long_sentence(fake_data: &LocationsDb) {
 
 #[rstest]
 fn should_search_punctuation(fake_data: &LocationsDb) {
-    let search_term = SearchTerm::from_raw_query(
-        "Armagh City".to_string(),
-        None,
-        5,
-        3,
-    );
+    let search_term = SearchTerm::from_raw_query("Armagh City".to_string(), None, 5, 3);
     let results = fake_data.search(&search_term);
     assert![results.len() == 1, "Found {}", results.len()];
     let armagh = results[0].0;
