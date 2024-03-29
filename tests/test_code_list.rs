@@ -160,14 +160,22 @@ fn should_search_long_sentence(fake_data: &LocationsDb) {
 
 #[rstest]
 fn should_search_punctuation(fake_data: &LocationsDb) {
-    let search_term = SearchTerm::from_raw_query("Armagh City".to_string(), None, 5, 3);
-    let results = fake_data.search(&search_term);
-    assert![results.len() == 1, "Found {}", results.len()];
-    let armagh = results[0].0;
-    assert![armagh == "ISO-3166-2-gb:abc"];
+    [
+        "Armagh City",
+        "Armagh City, Banbridge",
+        "Armagh City, Banbridge and Craigavon",
+    ]
+    .iter()
+    .for_each(|s| {
+        let search_term = SearchTerm::from_raw_query(s.to_string(), None, 5, 3);
+        let results = fake_data.search(&search_term);
+        assert![results.len() == 1, "Found {}", results.len()];
+        let armagh = results[0].0;
+        assert![armagh == "ISO-3166-2-gb:abc"];
 
-    let armagh_loc = &fake_data.all[&armagh];
+        let armagh_loc = &fake_data.all[&armagh];
 
-    assert![armagh_loc.get_state() == "gb"];
-    assert![armagh_loc.get_subdiv().unwrap() == "abc"];
+        assert![armagh_loc.get_state() == "gb"];
+        assert![armagh_loc.get_subdiv().unwrap() == "abc"];
+    })
 }
