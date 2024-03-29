@@ -61,9 +61,7 @@ impl Location {
             SUBDIV_ENCODING => LocData::Subdv(Subdivision::from_raw(r.d)?),
             LOCODE_ENCODING => LocData::Locd(Locode::from_raw(r.d)?),
             IATA_ENCODING => LocData::Airp(Airport::from_raw(r.d)?),
-            other => {
-                panic!("Unexpected location standard {}", other)
-            }
+            other => LocData::Gen(Generic::from_raw(r.d, other)?),
         };
         let id: Ustr = normalize(r.i.as_str()).into();
         let key = format!("{}-{}", encoding.as_str(), id.as_str());
@@ -127,6 +125,7 @@ impl Location {
                 }
             }
             LocData::Locd(d) => max(t.match_str(&d.name), t.match_str(&d.subcode)),
+            LocData::Gen(d) => max(t.match_str(&d.name), t.match_str(&d.subcode)),
             LocData::Airp(d) => max(t.match_str(&d.name), t.match_str(&d.iata)),
         };
         max(words_score, score)
@@ -136,6 +135,7 @@ impl Location {
             LocData::St(st) => st.get_names(),
             LocData::Subdv(sd) => sd.get_names(),
             LocData::Locd(locd) => locd.get_names(),
+            LocData::Gen(gn) => gn.get_names(),
             LocData::Airp(ap) => ap.get_names(),
         }
     }
@@ -144,6 +144,7 @@ impl Location {
             LocData::St(st) => st.get_codes(),
             LocData::Subdv(sd) => sd.get_codes(),
             LocData::Locd(lc) => lc.get_codes(),
+            LocData::Gen(gn) => gn.get_codes(),
             LocData::Airp(ap) => ap.get_codes(),
         }
     }
@@ -151,6 +152,12 @@ impl Location {
         match self.data {
             LocData::St(_) => (None, None),
             LocData::Subdv(sd) => (state_key(sd.supercode), None),
+            LocData::Gen(l) => (
+                state_key(l.supercode),
+                l.subdivision_code
+                    .map(|c| subdiv_key(l.supercode, c))
+                    .flatten(),
+            ),
             LocData::Locd(l) => (
                 state_key(l.supercode),
                 l.subdivision_code
@@ -165,6 +172,7 @@ impl Location {
             LocData::St(_) => score / 2,
             LocData::Subdv(_) => score / 3,
             LocData::Locd(_) => score / 4,
+            LocData::Gen(_) => score / 8,
             LocData::Airp(_) => 0,
         }
     }
@@ -173,6 +181,7 @@ impl Location {
             LocData::St(d) => d.alpha2,
             LocData::Subdv(d) => d.supercode,
             LocData::Locd(d) => d.supercode,
+            LocData::Gen(d) => d.supercode,
             LocData::Airp(d) => d.country,
         }
     }
@@ -181,6 +190,7 @@ impl Location {
             LocData::St(_st) => None,
             LocData::Subdv(sd) => Some(sd.subcode),
             LocData::Locd(loc) => loc.subdivision_code,
+            LocData::Gen(gen) => gen.subdivision_code,
             LocData::Airp(a) => {
                 let sd = a
                     .region
@@ -201,6 +211,7 @@ pub enum LocData {
     Subdv(Subdivision),
     Locd(Locode),
     Airp(Airport),
+    Gen(Generic),
 }
 
 impl LocData {
@@ -209,6 +220,7 @@ impl LocData {
             LocData::St(s) => s.alpha2,
             LocData::Subdv(sd) => sd.supercode,
             LocData::Locd(l) => l.supercode,
+            LocData::Gen(g) => g.supercode,
             LocData::Airp(a) => a.country,
         }
     }
@@ -217,6 +229,7 @@ impl LocData {
             LocData::St(_) => None,
             LocData::Subdv(sd) => Some(sd.subcode),
             LocData::Locd(l) => l.subdivision_code,
+            LocData::Gen(g) => g.subdivision_code,
             LocData::Airp(_) => None,
         }
     }
@@ -296,6 +309,16 @@ impl Subdivision {
 }
 
 #[derive(Debug, Copy, Clone, Serialize)]
+pub struct Generic {
+    name: Ustr,
+    standard: Ustr,
+    pub(crate) supercode: Ustr,
+    pub(crate) subcode: Ustr,
+    pub(crate) subdivision_code: Option<Ustr>,
+    pub(crate) coordinates: Option<Coordinates>,
+}
+
+#[derive(Debug, Copy, Clone, Serialize)]
 pub struct Locode {
     name: Ustr,
     pub(crate) supercode: Ustr,
@@ -304,6 +327,32 @@ pub struct Locode {
     pub(crate) subdivision_code: Option<Ustr>,
     pub(crate) function_code: Ustr,
     pub(crate) coordinates: Option<Coordinates>,
+}
+
+impl Generic {
+    fn get_names(&self) -> SmallVec<[Ustr; 1]> {
+        smallvec![self.name]
+    }
+    fn get_codes(&self) -> SmallVec<[Ustr; 1]> {
+        smallvec![self.subcode]
+    }
+    fn from_raw(r: serde_json::Value, standard: &str) -> serde_json::Result<Self> {
+        let r = serde_json::from_value::<HashMap<String, String>>(r)?;
+        Ok(Self {
+            name: crate::normalize(extract_field(&r, "name")?).into(),
+            supercode: normalize(extract_field(&r, "supercode")?).into(),
+            subcode: normalize(extract_field(&r, "subcode")?).into(),
+            subdivision_code: r.get("subdivision_code").map(|sd| normalize(sd).into()),
+            standard: Ustr::from(&standard),
+            coordinates: match r.get("c") {
+                Some(coords) => match coordinates::coordinate_parser(coords) {
+                    Ok(coords) => Some(coords.1),
+                    _ => None,
+                },
+                None => None,
+            },
+        })
+    }
 }
 
 impl Locode {

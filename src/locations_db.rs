@@ -59,6 +59,7 @@ impl LocationsDb {
             }
             LocData::Locd(_) => {}
             LocData::Airp(_) => {}
+            LocData::Gen(_) => {}
         }
         let node_id = self.arena.new_node(l.key);
         self.indices.insert(l.key, node_id);

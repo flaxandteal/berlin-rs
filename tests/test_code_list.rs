@@ -66,7 +66,7 @@ pub fn search_abercorn() -> SearchTerm {
 #[rstest]
 fn should_load_codes(fake_data: &LocationsDb) {
     assert!(
-        fake_data.all.len() == 15,
+        fake_data.all.len() == 17,
         "Got {} codes",
         fake_data.all.len()
     )
@@ -178,4 +178,19 @@ fn should_search_punctuation(fake_data: &LocationsDb) {
         assert![armagh_loc.get_state() == "gb"];
         assert![armagh_loc.get_subdiv().unwrap() == "abc"];
     })
+}
+
+#[rstest]
+fn should_search_generic(fake_data: &LocationsDb) {
+    let search_term = SearchTerm::from_raw_query("One1".to_string(), None, 5, 3);
+    let results = fake_data.search(&search_term);
+    assert![results.len() == 1, "Found {}", results.len()];
+
+    let my_one = results[0].0;
+    assert![my_one == "MY-STANDARD-my:1"];
+
+    let my_one_loc = &fake_data.all[&my_one];
+
+    assert![my_one_loc.get_state() == "bg"];
+    assert![my_one_loc.get_subdiv().unwrap() == "02"];
 }
