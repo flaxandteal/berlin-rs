@@ -9,9 +9,9 @@ use ustr::{Ustr, UstrSet};
 use crate::LEV_LENGTH_MAX;
 use crate::SCORE_SOFT_MAX;
 
-const STOP_WORDS: [&str; 15] = [
+const STOP_WORDS: [&str; 18] = [
     "any", "all", "are", "is", "at", "to", "in", "on", "of", "for", "by", "and", "was", "did",
-    "the",
+    "the", "city", "that", "with",
 ];
 
 #[derive(Debug)]
@@ -184,24 +184,30 @@ impl SearchableStringSet {
     }
     fn add_exact(&mut self, u: Ustr, normalized: &String) {
         let str = u.as_str();
-        let start = normalized.find(str).unwrap();
-        self.exact.push(MatchDef {
-            term: u,
-            offset: Offset {
-                start,
-                end: start + str.len(),
-            },
-        })
+        let loc = normalized.find(str);
+        match loc {
+            Some(start) => self.exact.push(MatchDef {
+                term: u,
+                offset: Offset {
+                    start,
+                    end: start + str.len(),
+                },
+            }),
+            None => (),
+        }
     }
     fn add_not_exact(&mut self, ne: String, normalized: &String) {
-        let start = normalized.find(&ne).unwrap();
-        self.not_exact.push(MatchDef {
-            offset: Offset {
-                start,
-                end: start + ne.len(),
-            },
-            term: ne,
-        })
+        let loc = normalized.find(&ne);
+        match loc {
+            Some(start) => self.not_exact.push(MatchDef {
+                offset: Offset {
+                    start,
+                    end: start + ne.len(),
+                },
+                term: ne,
+            }),
+            None => (),
+        }
     }
 }
 
@@ -214,6 +220,13 @@ impl SearchTerm {
     ) -> Self {
         let normalized = crate::normalize(&raw);
         let split_words: Vec<&str> = normalized.unicode_words().collect();
+        let split_indices: Vec<(usize, usize, &str)> = normalized
+            .unicode_word_indices()
+            .collect::<Vec<(usize, &str)>>()
+            .iter()
+            .map(|(n, w)| (*n, n + w.graphemes(true).count(), *w))
+            .filter(|(_, _, w)| !STOP_WORDS.contains(w))
+            .collect();
         let stop_words: Vec<Ustr> = split_words
             .iter()
             .filter_map(|w| Ustr::from_existing(w).filter(|w| STOP_WORDS.contains(&w.as_str())))
@@ -228,12 +241,13 @@ impl SearchTerm {
             matches: SearchableStringSet::new(stop_words.clone()),
         };
         // info!("Split words: {:?}", split_words);
-        for (i, w) in split_words.iter().enumerate() {
-            if split_words.len() > i + 1 {
-                let doublet: String = [w, split_words[i + 1]].join(" ");
+        let graphemes: Vec<&str> = normalized.graphemes(true).collect();
+        for (i, (n, _, w)) in split_indices.iter().enumerate() {
+            if split_indices.len() > i + 1 {
+                let doublet: String = graphemes[*n..split_indices[i + 1].1].join("");
                 st.matches.add(&doublet, &st.normalized, true);
-                if split_words.len() > i + 2 {
-                    let triplet = [&doublet, split_words[i + 2]].join(" ");
+                if split_indices.len() > i + 2 {
+                    let triplet = graphemes[*n..split_indices[i + 2].1].join("");
                     st.matches.add(&triplet, &st.normalized, false);
                 }
             }
